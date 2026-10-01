@@ -1,0 +1,16 @@
+[package]
+name = "enki-apsu"
+version = "0.2.0"
+edition = "2024"
+authors = ["Enki Dev <enkiruntime@proton.me>"]
+license = "MIT OR Apache-2.0"
+description = "Vulkan GPU memory allocator and device buffer abstractions for Enki"
+repository = "https://github.com/enkiruntime/enki"
+keywords = ["vulkan", "memory", "allocator", "gpu", "enki"]
+categories = ["memory-management", "hardware-support"]
+readme = "README.md"
+
+[dependencies]
+ash = "0.38"
+vk-mem = "0.4"
+anyhow = "1.0"

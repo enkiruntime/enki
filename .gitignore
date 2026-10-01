@@ -1,0 +1,14 @@
+target/
+**/target/
+.venv/
+**/__pycache__/
+**/build_dev/
+**/*.pyc
+.DS_Store
+*.tmp
+*.log
+*.dll
+*.exe
+*.exp
+*.pdb
+.idea/

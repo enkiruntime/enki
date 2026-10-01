@@ -1,0 +1,21 @@
+[package]
+name = "enki-anu"
+version = "0.2.5"
+edition = "2024"
+authors = ["Enki Dev <enkiruntime@proton.me>"]
+license = "MIT OR Apache-2.0"
+description = "BorrowEngine, task recording, and pipeline synthesis for the Enki runtime"
+repository = "https://github.com/enkiruntime/enki"
+keywords = ["vulkan", "borrow-checker", "gpu", "compiler", "enki"]
+categories = ["development-tools", "hardware-support", "concurrency"]
+readme = "README.md"
+
+[dependencies]
+apsu = { package = "enki-apsu", version = "0.2.0", path = "../apsu" }
+utu = { package = "enki-utu", version = "0.2.0", path = "../utu" }
+parsu = { package = "enki-parsu", version = "0.2.3", path = "../parsu" }
+
+ash = "0.38"
+bytemuck = "1.25"
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }

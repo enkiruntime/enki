@@ -1,0 +1,27 @@
+[book]
+title = "The Enki Book"
+authors = ["Enki Dev <enkiruntime@proton.me>"]
+description = "The official guide to the Enki heterogeneous GPU compute platform"
+src = "src"
+language = "en"
+
+[output.html]
+git-repository-url = "https://github.com/enkiruntime/enki"
+edit-url-template = "https://github.com/enkiruntime/enki/edit/main/book/{path}"
+default-theme = "navy"
+preferred-dark-theme = "navy"
+
+[output.html.playpen]
+editable = false
+copy-js = true
+
+[output.html.search]
+enable = true
+limit-results = 30
+teaser-word-count = 30
+use-boolean-and = true
+boost-title = 2
+boost-hierarchy = 1
+boost-paragraph = 1
+expand = true
+heading-split-level = 3

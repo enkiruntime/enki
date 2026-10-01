@@ -1,0 +1,37 @@
+[workspace]
+members = [
+    "core/apsu",
+    "core/utu",
+    "core/parsu",
+    "core/anu",
+    "src/enki_macros",
+    "src/enki_cli",
+]
+
+[package]
+name = "enki-gpu"
+version = "0.2.5"
+edition = "2024"
+authors = ["Enki Dev <enkiruntime@proton.me>"]
+license = "MIT OR Apache-2.0"
+description = "Pure Rust heterogeneous GPU compute platform with JIT compilation"
+repository = "https://github.com/enkiruntime/enki"
+keywords = ["gpu", "vulkan", "compute", "jit", "heterogeneous"]
+categories = ["graphics", "hardware-support", "concurrency"]
+readme = "README.md"
+
+[lib]
+name = "enki"
+path = "src/lib.rs"
+
+[dependencies]
+apsu = { package = "enki-apsu", version = "0.2.0", path = "core/apsu" }
+utu = { package = "enki-utu", version = "0.2.0", path = "core/utu" }
+parsu = { package = "enki-parsu", version = "0.2.3", path = "core/parsu" }
+anu = { package = "enki-anu", version = "0.2.5", path = "core/anu" }
+enki_macros = { version = "0.2.0", path = "src/enki_macros" }
+
+ash = "0.38"
+anyhow = "1.0"
+raw-window-handle = "0.6.2"
+ash-window = "0.13.0"

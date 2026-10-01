@@ -1,0 +1,17 @@
+[package]
+name = "cargo-enki"
+version = "0.2.0"
+edition = "2024"
+default-run = "enki"
+authors = ["Enki Dev <enkiruntime@proton.me>"]
+license = "MIT OR Apache-2.0"
+description = "CLI toolchain and runner for the Enki heterogeneous GPU compute platform"
+repository = "https://github.com/enkiruntime/enki"
+keywords = ["gpu", "cli", "cargo-subcommand", "vulkan", "enki"]
+categories = ["command-line-utilities", "development-tools::cargo-plugins"]
+readme = "README.md"
+
+[dependencies]
+sha2 = "0.10"
+base64 = "0.22"
+serde_json = "1.0"

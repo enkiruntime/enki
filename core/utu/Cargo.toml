@@ -1,0 +1,17 @@
+[package]
+name = "enki-utu"
+version = "0.2.0"
+edition = "2024"
+authors = ["Enki Dev <enkiruntime@proton.me>"]
+license = "MIT OR Apache-2.0"
+description = "Vulkan abstraction layer, window surface, and swapchain presentation integration for Enki"
+repository = "https://github.com/enkiruntime/enki"
+keywords = ["vulkan", "window", "swapchain", "presentation", "enki"]
+categories = ["graphics", "rendering", "gui"]
+readme = "README.md"
+
+[dependencies]
+ash = "0.38"
+raw-window-handle = "0.6.2"
+anyhow = "1.0"
+ash-window = "0.13.0"
