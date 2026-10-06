@@ -36,6 +36,7 @@ impl<'a> TaskQueue<'a> {
             match task {
                 RawTask::Compute(t) => {
                     0u8.hash(&mut hasher);
+                    t.pipeline.hash(&mut hasher);
                     t.grid_size.0.hash(&mut hasher);
                     t.grid_size.1.hash(&mut hasher);
                     t.grid_size.2.hash(&mut hasher);
