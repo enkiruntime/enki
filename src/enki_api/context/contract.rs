@@ -1,7 +1,37 @@
 use anu::nam_args_api::NamSignatureContract;
 use anyhow::{Result, anyhow};
+use std::any::TypeId;
+use std::collections::HashMap;
+use std::sync::{OnceLock, RwLock};
 
-#[inline]
+static CONTRACT_CACHE: OnceLock<
+    RwLock<HashMap<TypeId, (String, Option<&'static NamSignatureContract>)>>,
+> = OnceLock::new();
+
+fn get_cache() -> &'static RwLock<HashMap<TypeId, (String, Option<&'static NamSignatureContract>)>>
+{
+    CONTRACT_CACHE.get_or_init(|| RwLock::new(HashMap::with_capacity(32)))
+}
+
+pub fn resolve_contract_cached<F: 'static>() -> (String, Option<&'static NamSignatureContract>) {
+    let cache = get_cache();
+    let type_id = TypeId::of::<F>();
+
+    {
+        let read_guard = cache.read().unwrap();
+        if let Some(entry) = read_guard.get(&type_id) {
+            return entry.clone();
+        }
+    }
+
+    let nam_name = resolve_nam_name::<F>().unwrap_or_else(|_| "unknown_nam".to_string());
+    let contract = lookup_signature_contract(&nam_name);
+
+    let mut write_guard = cache.write().unwrap();
+    write_guard.insert(type_id, (nam_name.clone(), contract));
+    (nam_name, contract)
+}
+
 pub fn resolve_nam_name<F: 'static>() -> Result<String> {
     let full_name = std::any::type_name::<F>();
     extract_nam_name(full_name)

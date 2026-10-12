@@ -73,15 +73,23 @@ impl EnkiBuilder {
     /// Finalizes configuration and initializes a headless GPU context.
     #[track_caller]
     pub fn init(self) -> Arc<Enki> {
+        let try_headless = self.try_init();
+
+        match try_headless {
+            Ok(enki) => enki,
+            Err(e) => handle_execution_error(&e),
+        }
+    }
+
+    /// Finalizes configuration and initializes a headless GPU context, Returns `Result<Arc<Enki>>`.
+    #[track_caller]
+    pub fn try_init(self) -> Result<Arc<Enki>> {
         let caller = std::panic::Location::caller();
         let mut config = self.config;
         config.headless = true;
         config.caller_location = Some((caller.file(), caller.line(), caller.column()));
 
-        match Enki::new_headless_with_config(config) {
-            Ok(enki) => enki,
-            Err(e) => handle_execution_error(&e),
-        }
+        Enki::new_headless_with_config(config)
     }
 
     /// Finalizes configuration and initializes a windowed presentation GPU context.
@@ -94,15 +102,30 @@ impl EnkiBuilder {
             + Sync
             + 'static,
     {
+        let try_windowed = self.try_init_windowed(window, width, height);
+
+        match try_windowed {
+            Ok(enki) => enki,
+            Err(e) => handle_execution_error(&e),
+        }
+    }
+
+    /// Finalizes configuration and initializes a windowed presentation GPU context, Returns `Result<Arc<Enki>>`.
+    #[track_caller]
+    pub fn try_init_windowed<W>(self, window: Arc<W>, width: u32, height: u32) -> Result<Arc<Enki>>
+    where
+        W: raw_window_handle::HasWindowHandle
+            + raw_window_handle::HasDisplayHandle
+            + Send
+            + Sync
+            + 'static,
+    {
         let caller = std::panic::Location::caller();
         let mut config = self.config;
         config.headless = false;
         config.caller_location = Some((caller.file(), caller.line(), caller.column()));
 
-        match Enki::new_windowed_with_config(config, window, width, height) {
-            Ok(enki) => enki,
-            Err(e) => handle_execution_error(&e),
-        }
+        Enki::new_windowed_with_config(config, window, width, height)
     }
 
     /// Sets the maximum number of hardware timestamp profiling queries per flow.
@@ -139,6 +162,11 @@ impl Enki {
         Self::builder().init()
     }
 
+    /// Initializes a headless GPU compute context with default settings, Returns `Result<Arc<Enki>>`.
+    pub fn try_init() -> Result<Arc<Self>> {
+        Self::builder().try_init()
+    }
+
     /// Initializes a windowed GPU context with swapchain presentation support.
     pub fn init_windowed<W>(window: Arc<W>, width: u32, height: u32) -> Arc<Self>
     where
@@ -149,6 +177,18 @@ impl Enki {
             + 'static,
     {
         Self::builder().init_windowed(window, width, height)
+    }
+
+    /// Initializes a windowed GPU context with swapchain presentation support, Returns `Result<Arc<Enki>>`.
+    pub fn try_init_windowed<W>(window: Arc<W>, width: u32, height: u32) -> Result<Arc<Self>>
+    where
+        W: raw_window_handle::HasWindowHandle
+            + raw_window_handle::HasDisplayHandle
+            + Send
+            + Sync
+            + 'static,
+    {
+        Self::builder().try_init_windowed(window, width, height)
     }
 
     fn new_headless_with_config(config: EngineConfig) -> Result<Arc<Self>> {

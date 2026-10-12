@@ -1,6 +1,6 @@
 [package]
 name = "enki-parsu"
-version = "0.2.3"
+version = "0.3.0"
 edition = "2024"
 authors = ["Enki Dev <enkiruntime@proton.me>"]
 license = "MIT OR Apache-2.0"

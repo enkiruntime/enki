@@ -75,7 +75,7 @@ checksum = "d6aedf8ae72766347502cf3cb4f41cf5e9cc37d28bee90f1fdaaae15f9cf9424"
 
 [[package]]
 name = "cargo-enki"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "base64",
  "serde_json",
@@ -219,7 +219,7 @@ dependencies = [
 
 [[package]]
 name = "enki-anu"
-version = "0.2.5"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "ash",
@@ -232,7 +232,7 @@ dependencies = [
 
 [[package]]
 name = "enki-apsu"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "ash",
@@ -241,7 +241,7 @@ dependencies = [
 
 [[package]]
 name = "enki-gpu"
-version = "0.2.5"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "ash",
@@ -256,7 +256,7 @@ dependencies = [
 
 [[package]]
 name = "enki-parsu"
-version = "0.2.3"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "ash",
@@ -271,7 +271,7 @@ dependencies = [
 
 [[package]]
 name = "enki-utu"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "ash",
@@ -281,7 +281,7 @@ dependencies = [
 
 [[package]]
 name = "enki_macros"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "quote",
  "syn 2.0.119",

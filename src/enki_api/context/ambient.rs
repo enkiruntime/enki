@@ -66,15 +66,15 @@ where
     })
 }
 
-#[track_caller]
-#[inline(always)]
-pub(crate) fn with_active_flow<R, F>(f: F) -> R
-where
-    F: FnOnce(&mut Flow<'_>) -> R,
-{
-    let caller = Location::caller();
-    with_active_flow_at(caller, f)
-}
+// #[track_caller]
+// #[inline(always)]
+// pub(crate) fn with_active_flow<R, F>(f: F) -> R
+// where
+//     F: FnOnce(&mut Flow<'_>) -> R,
+// {
+//     let caller = Location::caller();
+//     with_active_flow_at(caller, f)
+// }
 
 #[inline(always)]
 pub(crate) fn resolve_user_caller(

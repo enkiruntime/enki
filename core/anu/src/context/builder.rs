@@ -278,7 +278,7 @@ impl EnkiEngineBuilder {
             target_arena_size = max_device_alloc;
         }
 
-        let param_arena = ApsuArena::new_device(
+        let param_arena = ApsuArena::new_upload(
             allocator.clone(),
             target_arena_size,
             BufferUsage::SHADER_DEVICE_ADDRESS

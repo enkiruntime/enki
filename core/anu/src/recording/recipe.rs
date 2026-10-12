@@ -36,7 +36,31 @@ pub struct CompiledExecutionRecipe {
 }
 
 impl CompiledExecutionRecipe {
-    pub fn replay<'a>(
+    pub fn update_parameters<'a>(
+        &self,
+        engine: &EnkiEngine,
+        current_queue: &TaskQueue<'a>,
+        slot_idx: usize,
+    ) -> anyhow::Result<()> {
+        for (task_idx, task) in current_queue.tasks.iter().enumerate() {
+            if let RawTask::Compute(t) = task {
+                let packed_args = t.args_ctx.pack();
+                if !packed_args.is_empty() {
+                    let static_offset = self.task_offsets[task_idx];
+                    let target_offset = (slot_idx * self.total_frame_param_size) + static_offset;
+
+                    engine.param_arena.write_raw(
+                        target_offset,
+                        &packed_args,
+                        Some(&engine.transfer_manager),
+                    )?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn record_commands<'a>(
         &self,
         engine: &EnkiEngine,
         cmd: vk::CommandBuffer,
@@ -60,23 +84,14 @@ impl CompiledExecutionRecipe {
                     layout,
                     task_idx,
                 } => {
-                    let (packed_args, grid_size, stack_bda) = match &current_queue.tasks[*task_idx]
-                    {
-                        RawTask::Compute(t) => (t.args_ctx.pack(), t.grid_size, t.stack_bda),
-                        _ => (Vec::new(), (1, 1, 1), 0),
+                    let (grid_size, stack_bda) = match &current_queue.tasks[*task_idx] {
+                        RawTask::Compute(t) => (t.grid_size, t.stack_bda),
+                        _ => ((1, 1, 1), 0),
                     };
 
                     let static_offset = self.task_offsets[*task_idx];
                     let target_offset = (slot_idx * self.total_frame_param_size) + static_offset;
                     let param_arena_ptr = engine.param_arena.base_address() + target_offset as u64;
-
-                    if !packed_args.is_empty() {
-                        engine.param_arena.write_raw(
-                            target_offset,
-                            &packed_args,
-                            Some(&engine.transfer_manager),
-                        )?;
-                    }
 
                     let mut push_bytes = [0u8; 32];
                     push_bytes[0..8].copy_from_slice(&param_arena_ptr.to_ne_bytes());

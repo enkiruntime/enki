@@ -10,7 +10,7 @@ members = [
 
 [package]
 name = "enki-gpu"
-version = "0.2.5"
+version = "0.3.0"
 edition = "2024"
 authors = ["Enki Dev <enkiruntime@proton.me>"]
 license = "MIT OR Apache-2.0"
@@ -25,11 +25,11 @@ name = "enki"
 path = "src/lib.rs"
 
 [dependencies]
-apsu = { package = "enki-apsu", version = "0.2.0", path = "core/apsu" }
-utu = { package = "enki-utu", version = "0.2.0", path = "core/utu" }
-parsu = { package = "enki-parsu", version = "0.2.3", path = "core/parsu" }
-anu = { package = "enki-anu", version = "0.2.5", path = "core/anu" }
-enki_macros = { version = "0.2.0", path = "src/enki_macros" }
+apsu = { package = "enki-apsu", version = "0.3.0", path = "core/apsu" }
+utu = { package = "enki-utu", version = "0.3.0", path = "core/utu" }
+parsu = { package = "enki-parsu", version = "0.3.0", path = "core/parsu" }
+anu = { package = "enki-anu", version = "0.3.0", path = "core/anu" }
+enki_macros = { version = "0.3.0", path = "src/enki_macros" }
 
 ash = "0.38"
 anyhow = "1.0"

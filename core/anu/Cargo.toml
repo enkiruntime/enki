@@ -1,6 +1,6 @@
 [package]
 name = "enki-anu"
-version = "0.2.5"
+version = "0.3.0"
 edition = "2024"
 authors = ["Enki Dev <enkiruntime@proton.me>"]
 license = "MIT OR Apache-2.0"
@@ -11,9 +11,9 @@ categories = ["development-tools", "hardware-support", "concurrency"]
 readme = "README.md"
 
 [dependencies]
-apsu = { package = "enki-apsu", version = "0.2.0", path = "../apsu" }
-utu = { package = "enki-utu", version = "0.2.0", path = "../utu" }
-parsu = { package = "enki-parsu", version = "0.2.3", path = "../parsu" }
+apsu = { package = "enki-apsu", version = "0.3.0", path = "../apsu" }
+utu = { package = "enki-utu", version = "0.3.0", path = "../utu" }
+parsu = { package = "enki-parsu", version = "0.3.0", path = "../parsu" }
 
 ash = "0.38"
 bytemuck = "1.25"

@@ -3,7 +3,6 @@ use ash::vk;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use crate::enki_api::context::contract::{lookup_signature_contract, resolve_nam_name};
 use crate::enki_api::context::errors::emit_and_abort;
 use crate::enki_api::context::instance::Enki;
 use crate::enki_api::resources::{GpuVec, Slice};
@@ -49,31 +48,35 @@ impl<'a> Flow<'a> {
             .current_timeline_value
             .store(timeline_value, Ordering::Release);
 
-        let (cmd, slot_idx) = {
+        let (cmd, slot_idx, is_static) = {
             let mut ring = engine.command_ring.lock().unwrap();
-            ring.acquire_next_cmd(engine.raw_device(), engine.timeline_semaphore.handle)
+            let (cmd, slot_idx) = ring
+                .acquire_next_cmd(engine.raw_device(), engine.timeline_semaphore.handle)
                 .context("[Flow] Failed to acquire command buffer from ring")
-                .unwrap()
+                .unwrap();
+            let is_static = ring.slots[slot_idx].is_statically_recorded;
+            (cmd, slot_idx, is_static)
         };
 
         let max_queries = engine.max_timestamp_queries;
         let start_query = (slot_idx as u32) * max_queries;
 
-        unsafe {
-            let begin_info = vk::CommandBufferBeginInfo::default()
-                .flags(vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT);
+        if !is_static {
+            unsafe {
+                let begin_info = vk::CommandBufferBeginInfo::default(); // Reusable buffer (بدون ONE_TIME_SUBMIT)
 
-            engine
-                .raw_device()
-                .begin_command_buffer(cmd, &begin_info)
-                .unwrap();
+                engine
+                    .raw_device()
+                    .begin_command_buffer(cmd, &begin_info)
+                    .unwrap();
 
-            engine.raw_device().cmd_reset_query_pool(
-                cmd,
-                engine.query_pool,
-                start_query,
-                max_queries,
-            );
+                engine.raw_device().cmd_reset_query_pool(
+                    cmd,
+                    engine.query_pool,
+                    start_query,
+                    max_queries,
+                );
+            }
         }
 
         Self {
@@ -188,15 +191,18 @@ impl<'a> Flow<'a> {
         F: 'static,
     {
         let engine = &self.enki.engine;
-        let nam_name = resolve_nam_name::<F>()?;
+
+        let (nam_name, contract) =
+            crate::enki_api::context::contract::resolve_contract_cached::<F>();
 
         map.nam_name = nam_name.clone();
+        map.expected_contract = contract;
 
-        if let Some(contract) = lookup_signature_contract(&nam_name) {
-            map.expected_contract = Some(contract);
-        }
-
-        let required_param_bytes = args_ctx.pack().len() as u64;
+        let required_param_bytes: u64 = args_ctx
+            .descriptors
+            .iter()
+            .map(|d| d.arena_size_bytes as u64)
+            .sum();
         let arena_capacity = engine.param_arena.size_bytes();
 
         if required_param_bytes > arena_capacity {
@@ -310,18 +316,28 @@ impl<'a> Flow<'a> {
         let engine = &self.enki.engine;
         let device = engine.raw_device();
 
-        recipe
-            .replay(
+        recipe.update_parameters(engine, &self.queue, self.slot_idx)?;
+
+        let is_static = {
+            let ring = engine.command_ring.lock().unwrap();
+            ring.slots[self.slot_idx].is_statically_recorded
+        };
+
+        if !is_static {
+            recipe.record_commands(
                 engine,
                 self.cmd,
                 &self.queue,
                 self.slot_idx,
                 engine.query_pool,
-            )
-            .context("[Flow] Recipe replay failed in headless submit")?;
+            )?;
 
-        unsafe {
-            device.end_command_buffer(self.cmd)?;
+            unsafe {
+                device.end_command_buffer(self.cmd)?;
+            }
+
+            let mut ring = engine.command_ring.lock().unwrap();
+            ring.slots[self.slot_idx].is_statically_recorded = true;
         }
 
         let cmd_buffers = [self.cmd];
@@ -360,31 +376,41 @@ impl<'a> Flow<'a> {
             .acquire_next_image(std::time::Duration::from_secs(5))
             .context("[Flow] Failed to acquire next swapchain image")?;
 
-        recipe
-            .replay(
+        recipe.update_parameters(engine, &self.queue, self.slot_idx)?;
+
+        let is_static = {
+            let ring = engine.command_ring.lock().unwrap();
+            ring.slots[self.slot_idx].is_statically_recorded
+        };
+
+        if !is_static {
+            recipe.record_commands(
                 engine,
                 self.cmd,
                 &self.queue,
                 self.slot_idx,
                 engine.query_pool,
-            )
-            .context("[Flow] Recipe replay failed in windowed submit")?;
+            )?;
 
-        for task in &self.queue.tasks {
-            if let RawTask::PresentBuffer(p) = task {
-                window_lock.cmd_copy_buffer_to_image(
-                    self.cmd,
-                    image_index,
-                    p.buffer,
-                    p.offset,
-                    p.width,
-                    p.height,
-                );
+            for task in &self.queue.tasks {
+                if let RawTask::PresentBuffer(p) = task {
+                    window_lock.cmd_copy_buffer_to_image(
+                        self.cmd,
+                        image_index,
+                        p.buffer,
+                        p.offset,
+                        p.width,
+                        p.height,
+                    );
+                }
             }
-        }
 
-        unsafe {
-            device.end_command_buffer(self.cmd)?;
+            unsafe {
+                device.end_command_buffer(self.cmd)?;
+            }
+
+            let mut ring = engine.command_ring.lock().unwrap();
+            ring.slots[self.slot_idx].is_statically_recorded = true;
         }
 
         let wait_semaphores = [window_lock.current_image_acquired_semaphore()];
@@ -462,6 +488,11 @@ impl<'a> Flow<'a> {
 impl<'a> Drop for Flow<'a> {
     fn drop(&mut self) {
         if !self.submitted.load(Ordering::SeqCst) {
+            let _ = self
+                .enki
+                .engine
+                .timeline_semaphore
+                .signal_timeline(self.timeline_value);
             let _ = self.enki.engine.wait_idle();
         }
     }

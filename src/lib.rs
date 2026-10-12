@@ -1,11 +1,3 @@
-//! # Enki
-//!
-//! Pure Rust heterogeneous GPU compute platform with Just-In-Time (JIT) compilation.
-//!
-//! Enki enables writing high-performance compute and graphics algorithms using standard,
-//! idiomatic Rust (structs, traits, pattern matching, iters, atomics, enums and payloads, macros, and `crates.io` dependencies)
-//! and executes them across GPU and CPU hardware with zero-cost abstractions.
-
 pub mod enki_api;
 
 // Core Execution Context

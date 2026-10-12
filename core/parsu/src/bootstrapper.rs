@@ -7,7 +7,7 @@ use std::process::Command;
 use std::time::Instant;
 use tar::Archive;
 
-pub const PARSU_VERSION: &str = "0.1.0";
+pub const PARSU_VERSION: &str = "0.2.0";
 
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 pub const TARGET_TRIPLE: &str = "x86_64-unknown-linux-gnu";
@@ -32,11 +32,11 @@ pub const ARCHIVE_EXTENSION: &str = "tar.gz";
 
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 pub const EXPECTED_SHA256: &str =
-    "766b53915e124681bf2d18a3cd0282de3b72ceefd57114dc795fb5f4b7139be8";
+    "110cf60fc08920e26946c66397c44842c3d3fe0738fe82173ed26e5ddd5f76d6";
 
 #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
 pub const EXPECTED_SHA256: &str =
-    "81a185cfb047ac2db94c9f103210f3c3fa9f23f5805cb8e6c681c04216c11bad";
+    "a5fbe164f51126bcc849f73a1f73e62e90637f35b15bcb78abb0bb0ebe9911cb";
 
 #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
 pub const EXPECTED_SHA256: &str = "";
@@ -92,6 +92,8 @@ fn detect_c_compiler() -> Option<PathBuf> {
         }
     }
     let candidates = [
+        "/usr/bin/clang-23",
+        "/usr/lib/llvm-23/bin/clang",
         "/usr/bin/clang-22",
         "/usr/lib/llvm-22/bin/clang",
         "/usr/bin/clang",
@@ -108,6 +110,8 @@ fn detect_cxx_compiler() -> Option<PathBuf> {
         }
     }
     let candidates = [
+        "/usr/bin/clang++-23",
+        "/usr/lib/llvm-23/bin/clang++",
         "/usr/bin/clang++-22",
         "/usr/lib/llvm-22/bin/clang++",
         "/usr/bin/clang++",
@@ -140,15 +144,24 @@ pub fn build_local_parsu() -> Result<PathBuf, String> {
         config_cmd.arg("-B").arg(&build_dir);
         config_cmd.arg("-G").arg("Ninja");
         config_cmd.arg("-DCMAKE_BUILD_TYPE=Release");
+        config_cmd.arg("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON");
 
         if let Ok(llvm_dir) = std::env::var("LLVM_DIR") {
             config_cmd.arg(format!("-DLLVM_DIR={llvm_dir}"));
+        } else if Path::new("/usr/lib/cmake/llvm").exists() {
+            config_cmd.arg("-DLLVM_DIR=/usr/lib/cmake/llvm");
+        } else if Path::new("/usr/lib/llvm-23/lib/cmake/llvm").exists() {
+            config_cmd.arg("-DLLVM_DIR=/usr/lib/llvm-23/lib/cmake/llvm");
         } else if Path::new("/usr/lib/llvm-22/lib/cmake/llvm").exists() {
             config_cmd.arg("-DLLVM_DIR=/usr/lib/llvm-22/lib/cmake/llvm");
         }
 
         if let Ok(mlir_dir) = std::env::var("MLIR_DIR") {
             config_cmd.arg(format!("-DMLIR_DIR={mlir_dir}"));
+        } else if Path::new("/usr/lib/cmake/mlir").exists() {
+            config_cmd.arg("-DMLIR_DIR=/usr/lib/cmake/mlir");
+        } else if Path::new("/usr/lib/llvm-23/lib/cmake/mlir").exists() {
+            config_cmd.arg("-DMLIR_DIR=/usr/lib/llvm-23/lib/cmake/mlir");
         } else if Path::new("/usr/lib/llvm-22/lib/cmake/mlir").exists() {
             config_cmd.arg("-DMLIR_DIR=/usr/lib/llvm-22/lib/cmake/mlir");
         }

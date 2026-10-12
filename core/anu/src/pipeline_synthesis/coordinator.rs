@@ -90,7 +90,6 @@ opt-level = 2
 rustflags = ["--emit=llvm-bc"]
 # ---------------------------------------------
 "#;
-
         let append_res = OpenOptions::new()
             .create(true)
             .append(true)

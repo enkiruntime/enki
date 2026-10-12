@@ -12,3 +12,6 @@ target/
 *.exp
 *.pdb
 .idea/
+book/book/
+
+media/
